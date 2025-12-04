@@ -1,52 +1,34 @@
-//Lógica de negócio do usuário fica neste arquivo (validações funcionais)
-import bcrypt from 'bcrypt';
-import User from '../models/User';
+import bcrypt from "bcrypt";
+import User from "../models/User.js";
 
-//Serviço de validação da criação do usuário. Validações das funções (campo obrigatório, crítica de senha, usuário existe, etc.)
-//recebe a requisição do controller e dá a resposta baseada no que foi passado e em qual validação irá cair esses dados
-export async function createUser(name, email, password, confirmPassword) {
-    if (!name) {
-        return res.status(400).json({ msg: "Digite o nome do usuário" });
-    }
+export async function createUser({ name, email, password, confirmPassword }) {
+  if (!name) throw { status: 400, message: "Digite o nome do usuário" };
+  if (!email) throw { status: 400, message: "Digite o e-mail" };
+  if (!password) throw { status: 400, message: "Digite uma senha" };
+  if (password !== confirmPassword) throw { status: 400, message: "Senhas não coincidem" };
 
-    if (!email) {
-        return res.status(400).json({ msg: "Digite o e-mail" });
-    }
+  const userExists = await User.findOne({ email });
+  if (userExists) throw { status: 400, message: "E-mail já registrado, utilize outro endereço de e-mail." };
 
-    if (!password) {
-        return res.status(400).json({ msg: "Digite uma senha" });
-    }
+  //hash da senha
+  const passwordHash = await bcrypt.hash(password, 12);
+  const createdUser = await User.create({
+    name,
+    email,
+    password: passwordHash
+  });
 
-    if (password != confirmPassword) {
-        return res
-            .status(400)
-            .json({ msg: "Senhas não coincidem" });
-    }
+  //não retornar a senha
+  const userSafe = createdUser.toObject();
+  delete userSafe.password;
+  return userSafe;
+}
 
-    //Valida se o e-mail já está sendo usado
-    const userExists = await User.findOne({ email: email });
+export async function readUserById(id) {
+  if (!id) throw { status: 400, message: "Id do usuário é obrigatório" };
 
-    if (userExists) {
-        return res.status(400).json({ msg: "E-mail já registrado, utilize outro endereço de e-mail." });
-    }
+  const user = await User.findById(id).select("-password");
+  if (!user) throw { status: 404, message: "Usuário não encontrado" };
 
-    //Encriptando a senha: ta capturando o valor passado na senha e criando uma hash de tamanho 12
-    const passwordHash = await bcrypt.hash(password, 12);
-    const createUser = await User.create({
-        name, email, password: passwordHash
-    });
-
-    //Se passar por todas as validações (regras) vai retornar pro controller
-    return createUser;
-};
-
-export async function getUser(id) {
-    //Quando listar o usuário, a senha não vai aparecer
-    const getUser = await User.findById(id).select('-password');
-
-    if (!getUser) {
-        return res.status(404).json({ msg: "Usuário não encontrado" });
-    }
-
-    return getUser;
-};
+  return user;
+}

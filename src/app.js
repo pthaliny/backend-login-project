@@ -1,13 +1,16 @@
+import cors from "cors";
 import corsOptions from "./config/corsOptions.js";
-import dbConnect from "./config/database.js";
-import express from 'express';
+import express from "express";
+import routers from "./routes/index.js";
+import { errorHandler } from "./middlewares/errorHandler.js";
 
 const app = express();
 app.use(express.json());
-
 app.use(cors(corsOptions));
-dbConnect ();
+
+routers(app);
+app.use(errorHandler);
 
 export default app;
 
-//Esse arquivo era onde estavam todas as partes do projeto: Conexão, validação, criação de rotas, etc. Agora, ele se tornou o arquivo de inicialização da aplicação.
+//aqui inicio os módulos necessários pra poder iniciar a app

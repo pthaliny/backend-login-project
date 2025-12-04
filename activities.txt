@@ -1,6 +1,0 @@
-Faltam:
-- Logout, pois criamos uma rota fake e ainda não criamos os métodos pra essa rota;
-- Middlewares
-- Faltam alguns métodos do authServices
-- Falta o arquivo de tratamento de erros padrões do projeto pros métodos
-- Arquivo de tratamento de erros específico pra autenticação (usuário não existe, cadastrado com sucesso, etc)

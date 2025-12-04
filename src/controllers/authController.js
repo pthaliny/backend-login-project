@@ -1,13 +1,36 @@
-import * as authService from '../services/authService.js';
+import * as authService from "../services/authService.js";
+
+export async function registerUser(req, res, next) {
+  try {
+    const { name, email, password, confirmpassword } = req.body;
+
+    const newUser = await authService.registerUser({
+      name,
+      email,
+      password,
+      confirmpassword,
+    });
+
+    return res.status(201).json({
+      msg: "Usuário criado com sucesso!",
+      user: newUser,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
 
 export async function loginAccess(req, res, next) {
-    const {email, password} = req.body;
+  try {
+    const { email, password } = req.body;
+    const { token, user } = await authService.loginAccess(email, password);
 
-    try {
-        //consulta o mnétodo login no authservice e o service vai verificar se ele existe, senha ta certa e se o token foi criado e inserido ao usuário
-        const token = await authService.loginAccess(email, password);
-        return res.status(200).json({ msg: "Autenticado com sucesso!", token }) //se tiver tudo certo permite o login
-    } catch (error) {
-        next(error);
-    }
+    return res.status(200).json({
+      msg: "Autenticado com sucesso!",
+      token,
+      user,
+    });
+  } catch (error) {
+    next(error);
+  }
 }
